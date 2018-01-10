@@ -10,10 +10,15 @@ import math
 from shapely.ops import cascaded_union, polygonize
 from scipy.spatial import Delaunay
 
+
+### Variables
+threshold = 500
+num_of_clusters = 200
+
 img = cv2.imread('turbine.jpg')
-#cd gray = cv2.cvtColor(img,0)
-surf = cv2.xfeatures2d.SURF_create(500)
-kp = surf.detect(img,None)
+gray = cv2.cvtColor(img,0)
+surf = cv2.xfeatures2d.SURF_create(threshold)
+kp = surf.detect(gray,None)
 points = []
 
 for i in range(0,len(kp)):
@@ -36,7 +41,7 @@ def closest_centroid(points, centroids):
     distances = np.sqrt(((points - centroids[:, np.newaxis])**2).sum(axis=2))
     return np.argmin(distances, axis=0)
 
-c = initialize_centroids(points, 200)
+c = initialize_centroids(points, num_of_clusters)
 
 def move_centroids(points, closest, centroids):
     """returns the new centroids assigned from the points closest to them"""
@@ -61,12 +66,12 @@ while(run):
     else:
         c = new_c
 	i += 1
-print('Iterations: %i' % i)
+print('K-means iterations: %i' % i)
 
 #Make scatterplot
 closest = closest_centroid(points, c)
 
-print("--- %s seconds ---" % (time.time() - start_time))
+print("K-means took: %s seconds" % (time.time() - start_time))
 
 
 #Put clusters into dict
