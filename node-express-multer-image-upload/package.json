@@ -1,0 +1,24 @@
+{
+  "name": "multer-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "repository": {
+    "git": "https://github.com/stahlmanDesign/node-express-multer-image-upload"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Justin Stahlman <jstahlman@mac.com> (http://www.stahlmandesign.com)",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^2.4.2",
+    "express": "^4.14.0",
+    "fs": "0.0.2",
+    "multer": "^1.1.0",
+    "progress-stream": "^1.2.0",
+    "python-shell": "^0.4.0",
+    "request": "^2.72.0",
+    "url": "^0.11.0"
+  }
+}
