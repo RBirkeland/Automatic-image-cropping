@@ -1,4 +1,5 @@
 import cv2
+import sys
 import numpy as np
 from matplotlib import pyplot as plt
 import time
@@ -10,13 +11,22 @@ import math
 from shapely.ops import cascaded_union, polygonize
 from scipy.spatial import Delaunay
 
+if(len(sys.argv) != 4):
+    print("Please provide 3 arguments: \nFile path (String) \nThreshold (Int) \nNumber of clusters (Int)")
+    sys.exit(0)
+
+print("File path: " + sys.argv[1])
+print("Threshold: " + sys.argv[2])
+print("Number of clusters: " + sys.argv[3])
 
 ### Variables
-threshold = 500
-num_of_clusters = 200
+threshold = int(sys.argv[2])
+num_of_clusters = int(sys.argv[3])
 
-img = cv2.imread('turbine.jpg')
+img = cv2.imread(sys.argv[1])
 gray = cv2.cvtColor(img,0)
+
+start_time = time.time()
 surf = cv2.xfeatures2d.SURF_create(threshold)
 kp = surf.detect(gray,None)
 points = []
@@ -24,10 +34,10 @@ points = []
 for i in range(0,len(kp)):
     points.append(kp[i].pt)
 
-print('Number of points: %i' % len(points))
+print("Took: %s seconds to find %i points" % ((time.time() - start_time), len(points)))
 points = np.array(points)
 
-img=cv2.drawKeypoints(img,kp, None)
+#img=cv2.drawKeypoints(img,kp, None, color=255)
 plt.imshow(img)
 
 def initialize_centroids(points, k):
@@ -55,7 +65,6 @@ def findBoundingBox(cluster):
     return patches.Rectangle((x1,y1),x2-x1,y2-y1,linewidth=1,edgecolor='r',facecolor='none')
 
 start_time = time.time()
-
 #K-means
 run=True
 i = 0
@@ -102,6 +111,12 @@ plt.scatter(points[:, 0], points[:, 1], c=closest, s=8)
 plt.scatter(c[:, 0], c[:, 1], c='r', s=8)
 
 
+
+
+
+'''
+
+#Not Working stuff!
 def alpha_shape(points, alpha):
     """
     Compute the alpha shape (concave hull) of a set
@@ -156,10 +171,60 @@ def alpha_shape(points, alpha):
     	    m = geometry.MultiLineString(edge_points)
     	    triangles = list(polygonize(m))
     	    return cascaded_union(triangles), edge_points
-			
-			
-#alpha = .4
-#concave_hull, edge_points = alpha_shape(clusters[0], alpha=alpha)
+
+def plot_polygon(polygon):
+    fig = pl.figure(figsize=(10,10))
+    ax = fig.add_subplot(111)
+    margin = .3
+    x_min, y_min, x_max, y_max = polygon.bounds
+    ax.set_xlim([x_min-margin, x_max+margin])
+    ax.set_ylim([y_min-margin, y_max+margin])
+    patch = PolygonPatch(polygon, fc='#999999',
+                         ec='#000000', fill=True,
+                         zorder=-1)
+    ax.add_patch(patch)
+    return fig
+
+
+
+
+from shapely.geometry import Polygon
+from shapely.geometry import Polygon, mapping
+import fiona
+
+poly = Polygon(points)
+maap = mapping(poly)
+
+
+# Define a polygon feature geometry with one attribute
+schema = {
+    'geometry': 'MultiPolygon',
+    'properties': {'id': 'int'},
+}
+
+# Write a new Shapefile
+with fiona.open('my_shp2.shp', 'w', 'ESRI Shapefile', schema) as c:
+    ## If there are multiple geometries, put the "for" loop here
+    c.write({
+        'geometry': mapping(poly),
+        'properties': {'id': 123},
+    })	
+
+input_shapefile = 'my_shp2.shp'
+shapefile = fiona.open(input_shapefile)
+points = [geometry.shape(point['geometry'])
+          for point in shapefile]
+
+print("Read in file")
+
+
+alpha = .4
+concave_hull, edge_points = alpha_shape(points, alpha=alpha)
+
+plot_polygon(concave_hull)
+_ = pl.plot(x,y,'o', color='#f16824')
+plot_polygon(concave_hull.buffer(1))
+_ = pl.plot(x,y,'o', color='#f16824')
 
 
 def plot_clusters(data, algorithm, args, kwds):
@@ -174,7 +239,7 @@ def plot_clusters(data, algorithm, args, kwds):
     frame.axes.get_yaxis().set_visible(False)
     plt.title('Clusters found by {}'.format(str(algorithm.__name__)), fontsize=24)
     plt.text(-0.5, 0.7, 'Clustering took {:.2f} s'.format(end_time - start_time), fontsize=14)
-
+'''
 
 plt.show()
 
