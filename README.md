@@ -5,7 +5,7 @@ Requirements:
 - OpenCV
 - Various libs (see imports in surf.py)
 
-```python surf.py```
+```python surf.py <image path> <threshold> <number of clusters>```
 
 
 ### NodeJS
